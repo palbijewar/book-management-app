@@ -54,6 +54,6 @@ export const login = async(req,res)=>{
     res.setHeader('auth-token',token);
     res.status(200).json({status:true,data:token})
     } catch (error) {
-    res.status(500).json({status:false,message:error.message})
+    res.status(500).json({status:false,message:error.message});
     }
     };

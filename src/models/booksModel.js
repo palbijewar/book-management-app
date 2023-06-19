@@ -6,7 +6,8 @@ const bookSchema = new Schema({
     title: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        lowercase:true
     },
     excerpt: {
         type: String,
@@ -26,10 +27,12 @@ const bookSchema = new Schema({
     category: {
         type: String,
         required: true,
+        lowercase:true
     },
     subcategory: {
         type: String,
         required: true,
+        lowercase:true
     },
     reviews: {
         type: Number,

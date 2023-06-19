@@ -11,7 +11,8 @@ const reviewSchema = new Schema({
   reviewedBy: {
     type:String, 
     required:true, 
-    default: 'Guest', 
+    default: 'Guest',
+    lowercase:true
 },
   reviewedAt: {
     type:Date, 
@@ -24,7 +25,8 @@ const reviewSchema = new Schema({
     required:true
 },
   review: {
-    type:String
+    type:String,
+    lowercase:true
 },
   isDeleted: {
     type:Boolean, 
