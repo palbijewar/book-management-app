@@ -34,6 +34,7 @@ export const updateReview = async(req,res)=>{
             return res.status(400).json({ status: false, message: "no field to update in body" });
         }
         const updateReview = await Reviews.findOneAndUpdate({_id:reviewId},req.body,{new:true});
+        if(!updateReview) return res.status(400).json({status:false,message:"no review found"});
         res.status(200).json({status:true,data:updateReview});
     } catch (error) {
     res.status(500).json({status:false,message:error.message});   

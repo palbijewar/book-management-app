@@ -183,7 +183,7 @@ export const updateBooks = async (req, res) => {
 export const removeBook = async(req,res)=>{
     try {
     const bookId = req.params.bookId;
-    const book = await Books.findOne({_id:bookId},{isDeleted:false});
+    const book = await Books.findOneAndUpdate({_id:bookId},{isDeleted:true},{new:true});
     if(!book) return res.status(404).json({status:false,message:'book not found or already deleted'});
     res.status(200).json({status:true,message:"book deleted successfully"});
     } catch (error) {
