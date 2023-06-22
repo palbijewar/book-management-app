@@ -1,12 +1,12 @@
 import Reviews from '../models/reviewModel.js';
 import Books from '../models/booksModel.js';
-import Users from '../models/usersModel.js';
 import moment from 'moment';
 import {isValid,validString,isValidReqBody} from '../utils/utile.js';
 
 export const review = async(req,res)=>{
     try {
-        const {bookId, reviewedBy,reviewedAt,rating,review} = req.body;
+        const {bookId} = req.params
+        const {reviewedBy,reviewedAt,rating,review} = req.body;
         if(!isValidReqBody(req.body)) return res.status(400).json({status:false,message:"no data"});
         const book = await Books.findOneAndUpdate(
             {_id:bookId,isDeleted:false},

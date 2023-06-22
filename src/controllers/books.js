@@ -2,7 +2,7 @@ import Books from '../models/booksModel.js';
 import Users from '../models/usersModel.js';
 
 import moment from 'moment';
-import {isValid,validString,isValidReqBody} from '../utils/utile.js';
+import {isValidReqBody} from '../utils/utile.js';
 
 
 export const books = async (req, res) => {
@@ -96,53 +96,38 @@ export const getBooks = async (req, res) => {
 
 export const booksById = async (req, res) => {
     try {
-        const { userId, category, subcategory } = req.query;
+        const bookId = req.params.bookId;
+        const book = await Books.findById(bookId).populate('reviews');
 
-        if (!userId && !category && !subcategory) {
-            return res.status(400).json({ status: false, message: "Please provide at least one query parameter" });
+        if (!book) {
+            return res.status(404).json({ status: false, message: "Book not found" });
         }
 
-        const user = await Users.findById(userId);
-        if (!user) {
-            return res.status(400).json({ status: false, message: "User not found" });
+        let reviewsData = [];
+        if (Array.isArray(book.reviews)) {
+            reviewsData = book.reviews.map(review => ({
+                reviewId: review._id,
+                rating: review.rating,
+                comment: review.comment
+            }));
         }
 
-        const books = await Books.find({
-            $and: [
-                {
-                    $or: [
-                        { userId: userId },
-                        { category: category },
-                        { subcategory: subcategory }
-                    ]
-                },
-                { isDeleted: false } // Filter out deleted books
-            ]
-        }).populate('reviews');
-
-        if (books.length === 0) {
-            return res.status(404).json({ status: false, message: "Books not found" });
-        }
-
-        const data = books.map(book => ({
+        const data = {
             _id: book._id,
             title: book.title,
             excerpt: book.excerpt,
             userId: book.userId,
             category: book.category,
-            reviews: book.reviews.map(review => ({
-                reviewId: review._id,
-                rating: review.rating,
-                comment: review.comment
-            })),
-            releasedAt: book.releasedAt.toISOString().split('T')[0] 
-        }));
+            reviewsData: reviewsData,
+            releasedAt: book.releasedAt.toISOString().split('T')[0]
+        };
 
         res.status(200).json({ status: true, data: data });
     } catch (error) {
         res.status(500).json({ status: false, message: error.message });
     }
 };
+
 
 
 export const updateBooks = async (req, res) => {
@@ -158,10 +143,10 @@ export const updateBooks = async (req, res) => {
             return res.status(404).json({ status: false, message: "Book not found" });
         }
 
-        const { title, excerpt, releasedAt, ISBN } = req.query;
+        const { title, excerpt, releasedAt, ISBN } = req.body;
 
         if (!title && !excerpt && !releasedAt && !ISBN) {
-            return res.status(400).json({ status: false, message: "Please provide at least one query parameter" });
+            return res.status(400).json({ status: false, message: "Please provide at least one detail to update" });
         }
 
         if (title && title !== book.title) {
@@ -199,7 +184,7 @@ export const removeBook = async(req,res)=>{
     try {
     const bookId = req.params.bookId;
     const book = await Books.findOne({_id:bookId},{isDeleted:false});
-    if(!book) return res.status(404).json({status:false,message:'book not found pr already deleted'});
+    if(!book) return res.status(404).json({status:false,message:'book not found or already deleted'});
     res.status(200).json({status:true,message:"book deleted successfully"});
     } catch (error) {
     res.status(500).json({ status: false, message: error.message });   

@@ -1,13 +1,14 @@
 import Users from '../models/usersModel.js';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
 export const auth = async(req,res,next)=>{
     try {
-        const token = req.headers.authorization.split(" ")[1] || req.headers['auth-token']
+        const token = req.headers['x-api-key']
 
         if(!token) return res.status(404).json({status: false, message : "Token Not Found."})
 
-        const docoded = jwt.verify(token, JWT_Secret)
+        const docoded = jwt.verify(token, process.env.JWT_SECRET)
 
         const user = await Users.findById(docoded.userId)
 

@@ -1,7 +1,7 @@
 import Users from '../models/usersModel.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import {isValid,isValidTitle,validString,isValidReqBody,validateEmail,isValidPassword,isValidPhoneNumber} from '../utils/utile.js';
+import {isValid,isValidTitle,validString,isValidReqBody,validateEmail,isValidPhoneNumber} from '../utils/utile.js';
 
 dotenv.config();
 
@@ -20,8 +20,6 @@ if(!validString(name))return res.status(400).json({status:false,message:"incorre
 if(!isValidPhoneNumber(phone))return res.status(400).json({status:false,message:"incorrect format for phone no."});
 
 if(!validateEmail(email))return res.status(400).json({status:false,message:"incorrect format for email"});
-
-if(!isValidPassword(password))return res.status(400).json({status:false,message:"incorrect format for password"});
 
 const data = {title,name,phone,email,password,address};
 
@@ -42,7 +40,6 @@ export const login = async(req,res)=>{
     
     if(!validateEmail(email))return res.status(400).json({status:false,message:"incorrect format for email"});
     
-    if(!isValidPassword(password))return res.status(400).json({status:false,message:"incorrect format for password"});
     
     const user = await Users.findOne({email:email})
     if(!user)return res.status(404).json({status:false,message:"user not found"});
@@ -51,7 +48,7 @@ export const login = async(req,res)=>{
       }, process.env.JWT_SECRET, {
         expiresIn: '3d'
       })
-    res.setHeader('auth-token',token);
+    res.setHeader('x-api-key',token);
     res.status(200).json({status:true,data:token})
     } catch (error) {
     res.status(500).json({status:false,message:error.message});
