@@ -26,7 +26,7 @@ const data = {title,name,phone,email,password,address};
 const user = await Users.create(data);
 res.status(201).json({status:true,data:user})
 } catch (error) {
-res.status(400).json({status:false,message:error.message})
+res.status(500).json({status:false,message:error.message})
 }
 };
 

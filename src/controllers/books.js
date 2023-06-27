@@ -1,54 +1,93 @@
 import Books from '../models/booksModel.js';
 import Users from '../models/usersModel.js';
-
+import aws from 'aws-sdk';
+import multer from 'multer';
 import moment from 'moment';
-import {isValidReqBody} from '../utils/utile.js';
+import dotenv from 'dotenv';
+import { isValidReqBody } from '../utils/utile.js';
 
+dotenv.config();
+
+let uploadFile= async ( file) =>{
+    return new Promise( function(resolve, reject) {
+     // this function will upload file to aws and return the link
+     let s3= new aws.S3({apiVersion: '2006-03-01'}); // we will be using the s3 service of aws
+ 
+     var uploadParams= {
+         ACL: "public-read",
+         Bucket: "classroom-training-bucket",  
+         Key: "abc/" + file.originalname, 
+         Body: file.buffer
+     }
+     s3.upload( uploadParams, function (err, data ){
+         if(err) {
+             return reject({"error": err})
+         }
+         console.log(data)
+         console.log("file uploaded succesfully")
+         return resolve(data.Location)
+     })
+    })
+ }
+ 
 
 export const books = async (req, res) => {
-    try {
-        const { title, excerpt, userId, category, subcategory, releasedAt } = req.body;
-        // Validations
-        if (!isValidReqBody(req.body)) {
-            return res.status(400).json({ status: false, message: "Empty data" });
-        }
-        if (!title) {
-            return res.status(400).json({ status: false, message: "Please provide the title" });
-        }
-        if (!excerpt) {
-            return res.status(400).json({ status: false, message: "Please provide the excerpt" });
-        }
-        if (!userId) {
-            return res.status(400).json({ status: false, message: "Please provide the userId" });
-        }
-        if (!category) {
-            return res.status(400).json({ status: false, message: "Please provide the category" });
-        }
-        if (!subcategory) {
-            return res.status(400).json({ status: false, message: "Please provide the subcategory" });
-        }
-        if (!releasedAt) {
-            return res.status(400).json({ status: false, message: "Please provide the date of release" });
-        }
-
-        const data = {
-            title,
-            excerpt,
-            userId,
-            category,
-            subcategory,
-            releasedAt
-        };
-
-        const book = await Books.create(data);
-
-        // Format the releasedAt field as yy-mm-dd
-        const formattedReleasedAt = moment(book.releasedAt).format("YY-MM-DD");
-
-        res.status(201).json({ status: true, data: { ...book.toJSON(), releasedAt: formattedReleasedAt } });
-    } catch (error) {
-        res.status(500).json({ status: false, message: error.message });
+  try {
+    const { title, excerpt, userId, category, subcategory, releasedAt } = req.body;
+    const files = req.files;
+    console.log(files) 
+    if(files && files.length>0){
+        let uploadedFileURL= await uploadFile( files[0] )
+        console.log(uploadedFileURL)
+        req.body.bookCover = uploadedFileURL
     }
+    else{
+        res.status(400).send({ msg: "No file found" })
+    }
+    // Validations
+    // if (!isValidReqBody(req.body)) {
+    //   return res.status(400).json({ status: false, message: "Empty data" });
+    // }
+    if (!title) {
+      return res.status(400).json({ status: false, message: "Please provide the title" });
+    }
+    if (!excerpt) {
+      return res.status(400).json({ status: false, message: "Please provide the excerpt" });
+    }
+    if (!userId) {
+      return res.status(400).json({ status: false, message: "Please provide the userId" });
+    }
+    if (!category) {
+      return res.status(400).json({ status: false, message: "Please provide the category" });
+    }
+    if (!subcategory) {
+      return res.status(400).json({ status: false, message: "Please provide the subcategory" });
+    }
+    if (!releasedAt) {
+      return res.status(400).json({ status: false, message: "Please provide the date of release" });
+    }
+
+
+    const data = {
+      title,
+      excerpt,
+      userId,
+      category,
+      subcategory,
+      releasedAt,
+    };
+ 
+    const response = req.body;
+
+    const book = await Books.create(response);
+
+    // Format the releasedAt field as yy-mm-dd
+    const formattedReleasedAt = moment(book.releasedAt).format("YY-MM-DD");
+
+    res.status(201).json({ status: true, data: { ...book.toJSON(), releasedAt: formattedReleasedAt } });
+  } catch (error) {
+    res.status(500).json({ status: false, message: error.message });
+  }
 };
 
 export const getBooks = async (req, res) => {
@@ -59,7 +98,7 @@ export const getBooks = async (req, res) => {
         }
         const user = await Users.findById(userId);
         if (!user) {
-            return res.status(400).json({ status: false, message: "User not found" });
+            return res.status(404).json({ status: false, message: "User not found" });
         }
         const books = await Books.find({
             $and: [
@@ -75,7 +114,7 @@ export const getBooks = async (req, res) => {
         });
 
         if (books.length === 0) {
-            return res.status(400).json({ status: false, message: "Books not found" });
+            return res.status(404).json({ status: false, message: "Books not found" });
         }
 
         const data = books.map(book => ({

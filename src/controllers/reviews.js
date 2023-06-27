@@ -13,7 +13,7 @@ export const review = async(req,res)=>{
             {$inc:{reviews:1}},
             {new:true}
             ); 
-        if(!book) return res.status(400).json({status:false,message:"book not found"});
+        if(!book) return res.status(404).json({status:false,message:"book not found"});
         const data = {bookId, reviewedBy,reviewedAt,rating,review};
         const response = await Reviews.create(data);
         const formattedReleasedAt = moment(book.releasedAt).format("YY-MM-DD");
@@ -27,14 +27,14 @@ export const updateReview = async(req,res)=>{
     try {
         const {bookId,reviewId} = req.params;
         const book = await Books.findById(bookId);
-        if(!book) return res.status(400).json({status:false,message:"book not found"});
+        if(!book) return res.status(404).json({status:false,message:"book not found"});
         const {review, rating, reviewer} = req.body;
         if(!isValidReqBody(req.body)) return res.status(400).json({status:false,message:"no data"});
         if (!review && !rating && !reviewer) {
             return res.status(400).json({ status: false, message: "no field to update in body" });
         }
         const updateReview = await Reviews.findOneAndUpdate({_id:reviewId},req.body,{new:true});
-        if(!updateReview) return res.status(400).json({status:false,message:"no review found"});
+        if(!updateReview) return res.status(404).json({status:false,message:"no review found"});
         res.status(200).json({status:true,data:updateReview});
     } catch (error) {
     res.status(500).json({status:false,message:error.message});   
@@ -45,7 +45,7 @@ export const deleteReview = async(req,res)=>{
     try {
         const {bookId,reviewId} = req.params;
         const book = await Books.findById(bookId);
-        if(!book) return res.status(400).json({status:false,message:"book not found"});
+        if(!book) return res.status(404).json({status:false,message:"book not found"});
         const updateReview = await Reviews.findOneAndDelete({_id:reviewId});
         if(!updateReview) return res.status(400).json({status:false,message:"review not found or already deleted"});
         res.status(200).json({status:true,message:"review is deleted"});

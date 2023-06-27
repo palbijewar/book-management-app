@@ -3,6 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 const { Schema, model } = mongoose;
 
 const bookSchema = new Schema({
+    bookCover:{
+        type:String,
+        required:true
+    },
     title: {
         type: String,
         required: true,
