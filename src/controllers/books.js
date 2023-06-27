@@ -67,7 +67,6 @@ export const books = async (req, res) => {
       return res.status(400).json({ status: false, message: "Please provide the date of release" });
     }
 
-
     const data = {
       title,
       excerpt,

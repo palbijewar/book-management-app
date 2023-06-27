@@ -2,7 +2,7 @@ import express from 'express';
 import aws from 'aws-sdk';
 import multer from 'multer';
 import {books,getBooks,booksById,updateBooks, removeBook} from '../controllers/books.js';
-import {auth} from '../middlewares/auth.js';
+import {auth,authorization} from '../middlewares/auth.js';
 const router = express.Router();
 
 aws.config.update({
@@ -14,8 +14,8 @@ region: "ap-south-1"
 router.post('/books',auth,books);
 router.get('/books',auth,getBooks);
 router.get('/books/:bookId',auth,booksById);
-router.put('/books/:bookId',auth,updateBooks);
-router.delete('/books/:bookId',auth,removeBook);
+router.put('/books/:bookId',auth,authorization,updateBooks);
+router.delete('/books/:bookId',auth,authorization,removeBook);
 
 
 export default router;
